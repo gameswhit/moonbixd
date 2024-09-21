@@ -299,7 +299,7 @@ class Binance {
                 await new Promise(resolve => setTimeout(resolve, 1000));
             }
 
-            await this.hitungMundur(1440 * 60);
+            await this.hitungMundur(50 * 60);
         }
     }
 }
