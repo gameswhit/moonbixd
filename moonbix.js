@@ -23,38 +23,38 @@ class Binance {
         this.game = null;
     }
 
-    log(msg, type = 'info') {
+    log(pesan, tipe = 'info') {
         const timestamp = new Date().toLocaleTimeString();
-        switch(type) {
+        switch(tipe) {
             case 'success':
-                console.log(`[${timestamp}] [*] ${msg}`.green);
+                console.log(`[${timestamp}] [*] ${pesan}`.green);
                 break;
             case 'custom':
-                console.log(`[${timestamp}] [*] ${msg}`.magenta);
+                console.log(`[${timestamp}] [*] ${pesan}`.magenta);
                 break;        
             case 'error':
-                console.log(`[${timestamp}] [!] ${msg}`.red);
+                console.log(`[${timestamp}] [!] ${pesan}`.red);
                 break;
             case 'warning':
-                console.log(`[${timestamp}] [*] ${msg}`.yellow);
+                console.log(`[${timestamp}] [*] ${pesan}`.yellow);
                 break;
             default:
-                console.log(`[${timestamp}] [*] ${msg}`);
+                console.log(`[${timestamp}] [*] ${pesan}`);
         }
     }
 
-    async countdown(seconds) {
-        for (let i = seconds; i > 0; i--) {
+    async hitungMundur(detik) {
+        for (let i = detik; i > 0; i--) {
             const timestamp = new Date().toLocaleTimeString();
             readline.cursorTo(process.stdout, 0);
-            process.stdout.write(`[${timestamp}] [*] Chờ ${i} giây để tiếp tục...`);
+            process.stdout.write(`[${timestamp}] [*] Tunggu ${i} detik lagi untuk melanjutkan...`);
             await new Promise(resolve => setTimeout(resolve, 1000));
         }
         readline.cursorTo(process.stdout, 0);
         readline.clearLine(process.stdout, 0);
     }
 
-    async callBinanceAPI(queryString) {
+    async panggilBinanceAPI(queryString) {
         const accessTokenUrl = "https://www.binance.com/bapi/growth/v1/friendly/growth-paas/third-party/access/accessToken";
         const userInfoUrl = "https://www.binance.com/bapi/growth/v1/friendly/growth-paas/mini-app-activity/third-party/user/user-info";
 
@@ -65,7 +65,7 @@ class Binance {
             });
 
             if (accessTokenResponse.data.code !== "000000" || !accessTokenResponse.data.success) {
-                throw new Error(`Failed to get access token: ${accessTokenResponse.data.message}`);
+                throw new Error(`Gagal mendapatkan token akses: ${accessTokenResponse.data.message}`);
             }
 
             const accessToken = accessTokenResponse.data.data.accessToken;
@@ -79,17 +79,17 @@ class Binance {
             }, { headers: userInfoHeaders });
 
             if (userInfoResponse.data.code !== "000000" || !userInfoResponse.data.success) {
-                throw new Error(`Failed to get user info: ${userInfoResponse.data.message}`);
+                throw new Error(`Gagal mendapatkan info pengguna: ${userInfoResponse.data.message}`);
             }
 
             return { userInfo: userInfoResponse.data.data, accessToken };
         } catch (error) {
-            this.log(`API call failed: ${error.message}`, 'error');
+            this.log(`Panggilan API gagal: ${error.message}`, 'error');
             return null;
         }
     }
 
-    async startGame(accessToken) {
+    async mulaiGame(accessToken) {
         try {
             const response = await this.axios.post(
                 'https://www.binance.com/bapi/growth/v1/friendly/growth-paas/mini-app-activity/third-party/game/start',
@@ -100,42 +100,42 @@ class Binance {
             this.game_response = response.data;
 
             if (response.data.code === '000000') {
-                this.log("Bắt đầu game thành công", 'success');
+                this.log("Berhasil memulai game", 'success');
                 return true;
             }
 
             if (response.data.code === '116002') {
-                this.log("Không đủ lượt chơi!", 'warning');
+                this.log("Tidak ada tiket bermain!", 'warning');
             } else {
-                this.log("Lỗi khi bắt đầu game!", 'error');
+                this.log("Terjadi kesalahan saat memulai game!", 'error');
             }
 
             return false;
         } catch (error) {
-            this.log(`Không thể bắt đầu game: ${error.message}`, 'error');
+            this.log(`Tidak dapat memulai game: ${error.message}`, 'error');
             return false;
         }
     }
 
-    async gameData() {
+    async dataGame() {
         try {
             const response = await axios.post('https://vemid42929.pythonanywhere.com/api/v1/moonbix/play', this.game_response);
 
             if (response.data.message === 'success') {
                 this.game = response.data.game;
-                this.log("Nhận dữ liệu game thành công", 'success');
+                this.log("Berhasil mendapatkan data game", 'success');
                 return true;
             }
 
             this.log(response.data.message, 'warning');
             return false;
         } catch (error) {
-            this.log(`Lỗi khi nhận dữ liệu game: ${error.message}`, 'error');
+            this.log(`Kesalahan saat mengambil data game: ${error.message}`, 'error');
             return false;
         }
     }
 
-    async completeGame(accessToken) {
+    async selesaikanGame(accessToken) {
         try {
             const response = await this.axios.post(
                 'https://www.binance.com/bapi/growth/v1/friendly/growth-paas/mini-app-activity/third-party/game/complete',
@@ -148,19 +148,19 @@ class Binance {
             );
 
             if (response.data.code === '000000' && response.data.success) {
-                this.log(`Hoàn thành game thành công | Nhận được ${this.game.log} points`, 'custom');
+                this.log(`Game selesai | Mendapatkan ${this.game.log} poin`, 'custom');
                 return true;
             }
 
-            this.log(`Không thể hoàn thành game: ${response.data.message}`, 'error');
+            this.log(`Tidak dapat menyelesaikan game: ${response.data.message}`, 'error');
             return false;
         } catch (error) {
-            this.log(`Lỗi khi hoàn thành game: ${error.message}`, 'error');
+            this.log(`Kesalahan saat menyelesaikan game: ${error.message}`, 'error');
             return false;
         }
     }
 
-    async getTaskList(accessToken) {
+    async dapatkanDaftarTugas(accessToken) {
         const taskListUrl = "https://www.binance.com/bapi/growth/v1/friendly/growth-paas/mini-app-activity/third-party/task/list";
         try {
             const response = await this.axios.post(taskListUrl, {
@@ -173,7 +173,7 @@ class Binance {
             });
 
             if (response.data.code !== "000000" || !response.data.success) {
-                throw new Error(`Không thể lấy danh sách nhiệm vụ: ${response.data.message}`);
+                throw new Error(`Tidak dapat mendapatkan daftar tugas: ${response.data.message}`);
             }
 
             const taskList = response.data.data.data[0].taskList.data;
@@ -183,12 +183,12 @@ class Binance {
             
             return resourceIds;
         } catch (error) {
-            this.log(`Không thể lấy danh sách nhiệm vụ: ${error.message}`, 'error');
+            this.log(`Tidak dapat mendapatkan daftar tugas: ${error.message}`, 'error');
             return null;
         }
     }
 
-    async completeTask(accessToken, resourceId) {
+    async selesaikanTugas(accessToken, resourceId) {
         const completeTaskUrl = "https://www.binance.com/bapi/growth/v1/friendly/growth-paas/mini-app-activity/third-party/task/complete";
         try {
             const response = await this.axios.post(completeTaskUrl, {
@@ -202,82 +202,82 @@ class Binance {
             });
 
             if (response.data.code !== "000000" || !response.data.success) {
-                throw new Error(`Không thể hoàn thành nhiệm vụ: ${response.data.message}`);
+                throw new Error(`Tidak dapat menyelesaikan tugas: ${response.data.message}`);
             }
 
             if (response.data.data.type) {
-                this.log(`Làm nhiệm vụ ${response.data.data.type} thành công!`, 'success');
+                this.log(`Berhasil menyelesaikan tugas ${response.data.data.type}!`, 'success');
             }
 
             return true;
         } catch (error) {
-            this.log(`Không thể hoàn thành nhiệm vụ: ${error.message}`, 'error');
+            this.log(`Tidak dapat menyelesaikan tugas: ${error.message}`, 'error');
             return false;
         }
     }
 
-    async completeTasks(accessToken) {
-        const resourceIds = await this.getTaskList(accessToken);
+    async selesaikanSemuaTugas(accessToken) {
+        const resourceIds = await this.dapatkanDaftarTugas(accessToken);
         if (!resourceIds || resourceIds.length === 0) {
-            this.log("No uncompleted tasks found", 'info');
+            this.log("Tidak ada tugas yang belum diselesaikan", 'info');
             return;
         }
 
         for (const resourceId of resourceIds) {
             if (resourceId !== 2058) {
-                const success = await this.completeTask(accessToken, resourceId);
+                const success = await this.selesaikanTugas(accessToken, resourceId);
                 if (success) {
-                    this.log(`Đã hoàn thành nhiệm vụ: ${resourceId}`, 'success');
+                    this.log(`Berhasil menyelesaikan tugas: ${resourceId}`, 'success');
                 } else {
-                    this.log(`Không thể hoàn thành nhiệm vụ: ${resourceId}`, 'warning');
+                    this.log(`Tidak dapat menyelesaikan tugas: ${resourceId}`, 'warning');
                 }
                 await new Promise(resolve => setTimeout(resolve, 1000));
             }
         }
     }
 
-    async playGameIfTicketsAvailable(queryString, accountIndex, firstName) {
-        console.log(`========== Tài khoản ${accountIndex} | ${firstName.green} ==========`);
+    async mainkanGameJikaAdaTiket(queryString, nomorAkun, namaDepan) {
+        console.log(`========== Akun ${nomorAkun} | ${namaDepan.green} ==========`);
         
-        const result = await this.callBinanceAPI(queryString);
+        const result = await this.panggilBinanceAPI(queryString);
         if (!result) return;
 
         const { userInfo, accessToken } = result;
-        const totalGrade = userInfo.metaInfo.totalGrade;
-        let availableTickets = userInfo.metaInfo.totalAttempts;
+        const totalSkor = userInfo.metaInfo.totalGrade;
+        let tiketTersedia = userInfo.metaInfo.totalAttempts;
 
-        this.log(`Tổng điểm: ${totalGrade}`);
-        this.log(`Vé đang có: ${availableTickets}`);
+        this.log(`Skor total: ${totalSkor}`);
+        this.log(`Tiket tersedia: ${tiketTersedia}`);
         
-        while (availableTickets > 0) {
-            this.log(`Bắt đầu game với ${availableTickets} vé có sẵn`, 'info');
+        while (tiketTersedia > 0) {
+            this.log(`Memulai game dengan ${tiketTersedia} tiket yang tersedia`, 'info');
             
-            if (await this.startGame(accessToken)) {
-                if (await this.gameData()) {
-                    await this.countdown(50);
+            if (await this.mulaiGame(accessToken)) {
+                if (await this.dataGame()) {
+                    await this.hitungMundur(50);
                     
-                    if (await this.completeGame(accessToken)) {
-                        availableTickets--;
-                        this.log(`Vé còn lại: ${availableTickets}`, 'info');
+                    if (await this.selesaikanGame(accessToken)) {
+                        tiketTersedia--;
+                        this.log(`Tiket tersisa: ${tiketTersedia}`, 'info');
                     } else {
                         break;
                     }
                 } else {
-                    this.log("Không thể nhận dữ liệu game", 'error');
+                    this.log("Tidak dapat mendapatkan data game", 'error');
                     break;
                 }
             } else {
-                this.log("Không thể bắt đầu trò chơi", 'error');
+                this.log("Tidak dapat memulai game", 'error');
                 break;
             }
 
-            if (availableTickets > 0) {
+            if (tiketTersedia > 0) {
                 await new Promise(resolve => setTimeout(resolve, 3000));
             }
         }
 
-        if (availableTickets === 0) {
-            this.log("Đã sử dụng hết vé", 'success');
+        if (tiketTersedia === 0) {
+            this.log("Semua tiket telah digunakan", 'success');
         }
     }
 
@@ -292,14 +292,14 @@ class Binance {
             for (let i = 0; i < data.length; i++) {
                 const queryString = data[i];
                 const userData = JSON.parse(decodeURIComponent(queryString.split('user=')[1].split('&')[0]));
-                const firstName = userData.first_name;
+                const namaDepan = userData.first_name;
                 
-                await this.playGameIfTicketsAvailable(queryString, i + 1, firstName);
+                await this.mainkanGameJikaAdaTiket(queryString, i + 1, namaDepan);
 
                 await new Promise(resolve => setTimeout(resolve, 1000));
             }
 
-            await this.countdown(1440 * 60);
+            await this.hitungMundur(1440 * 60);
         }
     }
 }
